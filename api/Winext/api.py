@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from .serializers import *
 from .models import *
+from django.http import Http404
 
 #------------------------------------------------------------------------------------------------------------
 # User
@@ -78,10 +79,10 @@ class UserRestoreAPIView(APIView):
 #------------------------------------------------------------------------------------------------------------
 # Roles
 #------------------------------------------------------------------------------------------------------------
+# listar todos los roles y permitir la creación de nuevos roles.
 class RoleListCreateAPIView(APIView):
-    # Muestra todos los roles y permite crear un nuevo rol
     def get(self, request):
-        roles = Role.objects.all()
+        roles = Role.objects.filter(is_deleted=False)
         serializer = RoleSerializer(roles, many=True)
         return Response(serializer.data)
 
@@ -93,12 +94,11 @@ class RoleListCreateAPIView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class RoleRetrieveUpdateDestroyAPIView(APIView):
-    # Obtiene un objeto de rol específico, maneja los casos donde no se encuentra el rol
     def get_object(self, pk):
         try:
-            return Role.objects.get(pk=pk)
+            return Role.objects.get(pk=pk, is_deleted=False)
         except Role.DoesNotExist:
-            raise Response({"error": "Role not found"}, status=status.HTTP_404_NOT_FOUND)
+            raise Http404("Role not found")
 
     def get(self, request, pk):
         role = self.get_object(pk)
@@ -119,12 +119,11 @@ class RoleRetrieveUpdateDestroyAPIView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 class RoleRestoreAPIView(APIView):
-    # Método para reactivar un rol eliminado
     def get_object(self, pk):
         try:
-            return Role.objects.only_deleted().get(pk=pk)
+            return Role.objects.get(pk=pk, is_deleted=True)
         except Role.DoesNotExist:
-            raise Response({"error": "Rol no existe"}, status=status.HTTP_404_NOT_FOUND)
+            raise Http404("Role not found")
 
     def put(self, request, pk):
         role = self.get_object(pk)
@@ -239,8 +238,38 @@ class AgencyRestoreAPIView(APIView):
         return Response(status=status.HTTP_200_OK)
 
 #------------------------------------------------------------------------------------------------------------
-# 
+# Profile
 #------------------------------------------------------------------------------------------------------------
+class ProfileListAPIView(APIView):
+    def get(self, request):
+        profiles = Profile.objects.filter(is_deleted=False)
+        serializer = ProfileSerializer(profiles, many=True)
+        return Response(serializer.data)
+
+class ProfileDetailAPIView(APIView):
+    def get_object(self, pk):
+        try:
+            return Profile.objects.get(pk=pk, is_deleted=False)
+        except Profile.DoesNotExist:
+            return Response({"error": "Profile not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    def get(self, request, pk):
+        profile = self.get_object(pk)
+        serializer = ProfileSerializer(profile)
+        return Response(serializer.data)
+
+    def put(self, request, pk):
+        profile = self.get_object(pk)
+        serializer = ProfileSerializer(profile, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, pk):
+        profile = self.get_object(pk)
+        profile.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 # ya tengo index en posmant, necesito crear los post (envios de info), show (mostrar por id = pk, es un get), update (actualizar datos), delete (borrar), restore (recuperar), de cada una de las apis
 # ademas, hacer el login register, y log out, 
