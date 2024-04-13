@@ -71,7 +71,7 @@ class UserRestoreAPIView(APIView):
         serializer = UserSerializer(user)
         return Response(serializer.data)
 
-"""
+
 class RoleListCreateAPIView(APIView):
     # Muestra todos los roles y permite crear un nuevo rol
     def get(self, request):
@@ -118,13 +118,13 @@ class RoleRestoreAPIView(APIView):
         try:
             return Role.objects.only_deleted().get(pk=pk)
         except Role.DoesNotExist:
-            raise Response({"error": "Role not found"}, status=status.HTTP_404_NOT_FOUND)
+            raise Response({"error": "Rol no existe"}, status=status.HTTP_404_NOT_FOUND)
 
     def put(self, request, pk):
         role = self.get_object(pk)
         role.restore()
         return Response(status=status.HTTP_200_OK)
-"""
+
 # ya tengo index en posmant, necesito crear los post (envios de info), show (mostrar por id = pk, es un get), update (actualizar datos), delete (borrar), restore (recuperar), de cada una de las apis
 # ademas, hacer el login register, y log out, 
 # hacer validacaion con try y except en el back (api.py)
