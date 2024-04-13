@@ -1,8 +1,15 @@
+# Django imports
 from django.db import models
-from django.utils.translation import gettext as _
-from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin
-from simple_history.models import HistoricalRecords
 from django.utils import timezone
+from django.conf import settings
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin
+from django.utils.translation import gettext as _
+
+# Third-party imports
+from simple_history.models import HistoricalRecords
+
 
 #------------------------------------------------------------------------------------------------------------
 # Roles
@@ -163,30 +170,21 @@ class Agency(models.Model):
 # Perfil
 #------------------------------------------------------------------------------------------------------------
 class Profile(models.Model):
-
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='profile')
     name = models.CharField('Nombres', max_length=255, blank=True, null=True)
     last_name = models.CharField('Apellidos', max_length=255, blank=True, null=True)
     image = models.ImageField('Imagen de perfil', upload_to='perfil/', max_length=255, null=True, blank=True)
     phone_number = models.CharField('Número de teléfono', max_length=255)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
-
     created_at = models.DateTimeField('Fecha de creación', auto_now_add=True)
     updated_at = models.DateTimeField('Fecha de actualización', auto_now=True)
     deleted_at = models.DateTimeField('Fecha de eliminación', blank=True, null=True)
     is_deleted = models.BooleanField(default=False)
     historical = HistoricalRecords()
 
-    class Meta:
-        verbose_name = _("Profile")
-        verbose_name_plural = _("Profiles")
-
     def __str__(self):
-        return self.name
-
-    def get_absolute_url(self):
-        return reverse("Profile_detail", kwargs={"pk": self.pk})
+        return self.name or f"Profile of {self.user.username}"
 
     def delete(self, *args, **kwargs):
         self.is_deleted = True

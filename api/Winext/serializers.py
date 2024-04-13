@@ -117,7 +117,18 @@ class UserSerializer(serializers.ModelSerializer):
         user.save()
         return user
 
-    class Meta:
+    class Meta:class RoleRestoreAPIView(APIView):
+    # Método para reactivar un rol eliminado
+    def get_object(self, pk):
+        try:
+            return Role.objects.only_deleted().get(pk=pk)
+        except Role.DoesNotExist:
+            raise Response({"error": "Rol no existe"}, status=status.HTTP_404_NOT_FOUND)
+
+    def put(self, request, pk):
+        role = self.get_object(pk)
+        role.restore()
+        return Response(status=status.HTTP_200_OK)... ademas, quiero que sea parecido a este codigo. 
         model = User
         fields = ['id', 
                   'username', 
