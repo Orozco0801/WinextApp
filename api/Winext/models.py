@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.translation import gettext as _
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin
 from simple_history.models import HistoricalRecords
 from django.utils import timezone
@@ -13,20 +14,22 @@ class Role(models.Model):
     created_at = models.DateTimeField('Fecha de creación', auto_now_add=True)
     updated_at = models.DateTimeField('Fecha de actualización', auto_now=True)
     deleted_at = models.DateTimeField('Fecha de eliminación', blank=True, null=True)
-    
+    is_deleted = models.BooleanField(default=False)
+
     class Meta:
         verbose_name = 'Rol'
+        
         verbose_name_plural = 'Roles'
 
     def __str__(self):
         return self.name
 
     def delete(self, *args, **kwargs):
-        self.deleted_at = timezone.now()
+        self.is_deleted = True
         self.save()
 
     def restore(self, *args, **kwargs):
-        self.deleted_at = None
+        self.is_deleted = False
         self.save()
 
 #------------------------------------------------------------------------------------------------------------
@@ -68,6 +71,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     updated_at = models.DateTimeField('Fecha de actualización', auto_now=True)
     deleted_at = models.DateTimeField('Fecha de eliminación', blank=True, null=True)
     last_login = models.DateTimeField('Último inicio de sesión', auto_now=True)
+    is_deleted = models.BooleanField(default=False)
     objects = UserManager()
 
     USERNAME_FIELD = 'username'
@@ -81,11 +85,11 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.username
 
     def delete(self, *args, **kwargs):
-        self.deleted_at = timezone.now()
+        self.is_deleted = True
         self.save()
 
     def restore(self, *args, **kwargs):
-        self.deleted_at = None
+        self.is_deleted = False
         self.save()
 
 # Cifrar Pass
@@ -96,6 +100,63 @@ class User(AbstractBaseUser, PermissionsMixin):
 # Verificar contraseña
     def check_password(self, raw_password):
         return check_password(raw_password, self.password)
+
+#------------------------------------------------------------------------------------------------------------
+# Vehiculo
+#------------------------------------------------------------------------------------------------------------
+class Vehicle(models.Model):
+
+    make = models.CharField(max_length=50)
+    model = models.CharField(max_length=50)
+    plate_number = models.CharField(unique=True, max_length= 20)
+
+    created_at = models.DateTimeField('Fecha de creación', auto_now_add=True)
+    updated_at = models.DateTimeField('Fecha de actualización', auto_now=True)
+    deleted_at = models.DateTimeField('Fecha de eliminación', blank=True, null=True)
+    is_deleted = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name = 'Vehicle'
+        verbose_name_plural = 'Vehicles'
+
+    def __str__(self):
+        return f'{self.make} {self.model}'
+
+    def delete(self, *args, **kwargs):
+        self.is_deleted = True
+        self.save()
+
+    def restore(self, *args, **kwargs):
+        self.is_deleted = False
+        self.save()
+
+#------------------------------------------------------------------------------------------------------------
+# Agencia
+#------------------------------------------------------------------------------------------------------------
+class Agency(models.Model):
+    name = models.CharField(max_length=50)
+    address = models.CharField(max_length=50)
+    phone = models.CharField(max_length=15)
+    email = models.EmailField(unique=True, max_length=30)
+    is_deleted = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name = _("Agency")
+        verbose_name_plural = _("Agencys")
+
+    def __str__(self):
+        return self.name
+
+    def delete(self, *args, **kwargs):
+        self.is_deleted = True
+        self.save()
+
+    def restore(self, *args, **kwargs):
+        self.is_deleted = False
+        self.save()
+
+    def get_absolute_url(self):
+        return reverse("Agency_detail", kwargs={"pk": self.pk})
 
 
 #------------------------------------------------------------------------------------------------------------
@@ -114,6 +175,7 @@ class Profile(models.Model):
     created_at = models.DateTimeField('Fecha de creación', auto_now_add=True)
     updated_at = models.DateTimeField('Fecha de actualización', auto_now=True)
     deleted_at = models.DateTimeField('Fecha de eliminación', blank=True, null=True)
+    is_deleted = models.BooleanField(default=False)
     historical = HistoricalRecords()
 
     class Meta:
@@ -127,11 +189,11 @@ class Profile(models.Model):
         return reverse("Profile_detail", kwargs={"pk": self.pk})
 
     def delete(self, *args, **kwargs):
-        self.deleted_at = timezone.now()
+        self.is_deleted = True
         self.save()
 
     def restore(self, *args, **kwargs):
-        self.deleted_at = None
+        self.is_deleted = False
         self.save()
 
 #------------------------------------------------------------------------------------------------------------
@@ -139,67 +201,30 @@ class Profile(models.Model):
 #------------------------------------------------------------------------------------------------------------
 class TaxiUser(Profile):
     id_vehicle = models.ForeignKey(Vehicle, on_delete=models.SET_NULL, null=True)
-    document = models.CharField(unique=True)
+    document = models.CharField(unique=True, max_length= 20)
     id_agency = models.OneToOneField(Agency, on_delete=models.SET_NULL, null=True)
 
-#------------------------------------------------------------------------------------------------------------
-# Vehiculo
-#------------------------------------------------------------------------------------------------------------
-class Vehicle(models.Model):
-
-    make = models.CharField(max_length=50)
-    model = models.CharField(max_length=50)
-    plate_number = models.CharField(unique=True)
-    created_at = models.DateTimeField('Fecha de creación', auto_now_add=True)
-    updated_at = models.DateTimeField('Fecha de actualización', auto_now=True)
-    deleted_at = models.DateTimeField('Fecha de eliminación', blank=True, null=True)
-
-    class Meta:
-        verbose_name = 'Vehicle'
-        verbose_name_plural = 'Vehicles'
-
-    def __str__(self):
-        return f'{self.make} {self.model}'
-
     def delete(self, *args, **kwargs):
-        self.deleted_at = timezone.now()
+        self.is_deleted = True
         self.save()
 
     def restore(self, *args, **kwargs):
-        self.deleted_at = None
+        self.is_deleted = False
         self.save()
-
-#------------------------------------------------------------------------------------------------------------
-# Agencia
-#------------------------------------------------------------------------------------------------------------
-class Agency(models.Model):
-    name = models.CharField(max_length=50)
-    address = models.CharField(max_length=50)
-    phone = models.CharField(max_length=15)
-    email = models.CharField(unique=True, max_length=30)
-
-    class Meta:
-        verbose_name = _("Agency")
-        verbose_name_plural = _("Agencys")
-
-    def __str__(self):
-        return self.name
-
-    def get_absolute_url(self):
-        return reverse("Agency_detail", kwargs={"pk": self.pk})
 
 
 #------------------------------------------------------------------------------------------------------------
 # Viaje
 #------------------------------------------------------------------------------------------------------------
 class Trip(models.Model):
-
     client = models.ForeignKey(User, on_delete=models.CASCADE, related_name='client_trips')
     driver = models.ForeignKey(User, on_delete=models.CASCADE, related_name='driver_trips')
-    start_time = models.DateTimeField()
-    end_time = models.DateTimeField()
+    
+    start_time = models.CharField(max_length=255)
+    end_time = models.CharField(max_length=255)
     start_location = models.CharField(max_length=255)
     end_location = models.CharField(max_length=255)
+    is_deleted = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = _("Trip")
@@ -207,6 +232,14 @@ class Trip(models.Model):
 
     def __str__(self):
         return f'Trip from {self.start_location} to {self.end_location}'
+
+    def delete(self, *args, **kwargs):
+        self.is_deleted = True
+        self.save()
+
+    def restore(self, *args, **kwargs):
+        self.is_deleted = False
+        self.save()
 
     def get_absolute_url(self):
         return reverse("Trip_detail", kwargs={"pk": self.pk})

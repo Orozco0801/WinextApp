@@ -1,16 +1,66 @@
 from rest_framework import serializers
 from .models import *
 
+#------------------------------------------------------------------------------------------------------------
+# Roles
+#------------------------------------------------------------------------------------------------------------
 class RoleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Role
         fields = '__all__'
 
+#------------------------------------------------------------------------------------------------------------
+# Usuarios
+#------------------------------------------------------------------------------------------------------------
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ( 'id', 'username','password', 'role', 'last_login')
-        read_only_field = ('created_at', 'update_at', 'deleted_at')
+        fields = ('id', 'username', 'email', 'role', 'created_at', 'updated_at', 'deleted_at', 'last_login', 'is_deleted')
+        read_only_fields = ('created_at', 'updated_at', 'deleted_at',)
+
+#------------------------------------------------------------------------------------------------------------
+# Vehiculo
+#------------------------------------------------------------------------------------------------------------
+class VehicleSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Vehicle
+        fields = '__all__'
+
+#------------------------------------------------------------------------------------------------------------
+# Agencia
+#------------------------------------------------------------------------------------------------------------
+class AgencySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Agency
+        fields = '__all__'
+
+#------------------------------------------------------------------------------------------------------------
+# Perfil
+#------------------------------------------------------------------------------------------------------------
+class ProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Profile
+        fields = ('id', 'user', 'name', 'last_name', 'image', 'phone_number', 'is_active', 'is_staff', 'created_at', 'updated_at', 'deleted_at', 'is_deleted', 'historical')
+        read_only_fields = ('created_at', 'updated_at', 'deleted_at',)
+
+#------------------------------------------------------------------------------------------------------------
+# Taxistas 
+#------------------------------------------------------------------------------------------------------------
+class TaxiUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TaxiUser
+        fields = ('id', 'user', 'id_vehicle', 'document', 'id_agency', 'created_at', 'updated_at', 'deleted_at', 'is_deleted')
+        read_only_fields = ('created_at', 'updated_at', 'deleted_at',)
+
+#------------------------------------------------------------------------------------------------------------
+# Viaje
+#------------------------------------------------------------------------------------------------------------
+class TripSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Trip
+        fields = ('id', 'client', 'driver', 'start_time', 'end_time', 'start_location', 'end_location', 'is_deleted')
+        read_only_fields = ('id',)
+
 
 
 

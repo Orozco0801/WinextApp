@@ -1,8 +1,7 @@
-from django.urls import path
-from Winext.api import *
+from django.contrib import admin
+from django.urls import path, include
 
 urlpatterns = [
-    
-    path('users', UserIndexAPIView.as_view(), name='user-list'),
-    path('role', RoleIndexAPIView.as_view(), name='role-list'),
+    path('admin/', admin.site.urls),
+    path('api/', include('Winext.urls')),  
 ]
