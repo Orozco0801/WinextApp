@@ -51,12 +51,14 @@ class UserRetrieveUpdateDestroyAPIView(APIView):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+"""
     def delete(self, request, pk):
         # marca un usuario como eliminado
         user = self.get_object(pk)
         user.is_deleted = True
         user.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
+"""
 
 # restaurar un usuario
 class UserRestoreAPIView(APIView):
@@ -266,10 +268,12 @@ class ProfileDetailAPIView(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+"""
     def delete(self, request, pk):
         profile = self.get_object(pk)
         profile.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+"""
 
 # ya tengo index en posmant, necesito crear los post (envios de info), show (mostrar por id = pk, es un get), update (actualizar datos), delete (borrar), restore (recuperar), de cada una de las apis
 # ademas, hacer el login register, y log out, 
