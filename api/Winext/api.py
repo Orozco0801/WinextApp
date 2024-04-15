@@ -51,14 +51,12 @@ class UserRetrieveUpdateDestroyAPIView(APIView):
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-"""
     def delete(self, request, pk):
         # marca un usuario como eliminado
         user = self.get_object(pk)
         user.is_deleted = True
         user.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
-"""
 
 # restaurar un usuario
 class UserRestoreAPIView(APIView):
