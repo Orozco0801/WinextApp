@@ -24,7 +24,8 @@ class UserSerializer(serializers.ModelSerializer):
 class VehicleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Vehicle
-        fields = '__all__'
+        fields = ('make', 'model','plate_number')
+        read_only_fields = ('created_at', 'updated_at', 'deleted_at',)
 
 #------------------------------------------------------------------------------------------------------------
 # Agencia
@@ -32,7 +33,8 @@ class VehicleSerializer(serializers.ModelSerializer):
 class AgencySerializer(serializers.ModelSerializer):
     class Meta:
         model = Agency
-        fields = '__all__'
+        fields = ('name', 'address', 'phone', 'email')
+        read_only_fields = ('created_at', 'updated_at', 'deleted_at',)
 
 #------------------------------------------------------------------------------------------------------------
 # Perfil

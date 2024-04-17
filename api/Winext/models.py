@@ -10,7 +10,6 @@ from django.utils.translation import gettext as _
 # Third-party imports
 from simple_history.models import HistoricalRecords
 
-
 #------------------------------------------------------------------------------------------------------------
 # Roles
 #------------------------------------------------------------------------------------------------------------
@@ -145,6 +144,10 @@ class Agency(models.Model):
     address = models.CharField(max_length=50)
     phone = models.CharField(max_length=15)
     email = models.EmailField(unique=True, max_length=30)
+
+    created_at = models.DateTimeField('Fecha de creación', auto_now_add=True)
+    updated_at = models.DateTimeField('Fecha de actualización', auto_now=True)
+    deleted_at = models.DateTimeField('Fecha de eliminación', blank=True, null=True)
     is_deleted = models.BooleanField(default=False)
 
     class Meta:
@@ -177,6 +180,7 @@ class Profile(models.Model):
     phone_number = models.CharField('Número de teléfono', max_length=255)
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
+
     created_at = models.DateTimeField('Fecha de creación', auto_now_add=True)
     updated_at = models.DateTimeField('Fecha de actualización', auto_now=True)
     deleted_at = models.DateTimeField('Fecha de eliminación', blank=True, null=True)
