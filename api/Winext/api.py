@@ -4,6 +4,7 @@ from rest_framework import status
 from .serializers import *
 from .models import *
 from django.http import Http404
+from .permissions import IsClient, IsDriver 
 
 #------------------------------------------------------------------------------------------------------------
 # User
@@ -132,22 +133,9 @@ class RoleRestoreAPIView(APIView):
 
 
 #------------------------------------------------------------------------------------------------------------
-# Vehicle
+# Vehicle mostrar y actualizar solamente
 #------------------------------------------------------------------------------------------------------------
-class VehicleListCreateAPIView(APIView):
-    def get(self, request):
-        vehicles = Vehicle.objects.filter(is_deleted=False)
-        serializer = VehicleSerializer(vehicles, many=True)
-        return Response(serializer.data)
-
-    def post(self, request):
-        serializer = VehicleSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-class VehicleRetrieveUpdateDestroyAPIView(APIView):
+class VehicleRetrieveUpdateAPIView(APIView):
     def get_object(self, pk):
         try:
             return Vehicle.objects.get(pk=pk, is_deleted=False)
@@ -161,81 +149,12 @@ class VehicleRetrieveUpdateDestroyAPIView(APIView):
 
     def put(self, request, pk):
         vehicle = self.get_object(pk)
-        serializer = VehicleSerializer(vehicle, data=request.data)
+        serializer = VehicleSerializer(vehicle, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def delete(self, request, pk):
-        vehicle = self.get_object(pk)
-        vehicle.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-class VehicleRestoreAPIView(APIView):
-    def get_object(self, pk):
-        try:
-            return Vehicle.objects.get(pk=pk, is_deleted=True)
-        except Vehicle.DoesNotExist:
-            return Response({"error": "Vehicle not found"}, status=status.HTTP_404_NOT_FOUND)
-
-    def put(self, request, pk):
-        vehicle = self.get_object(pk)
-        vehicle.restore()
-        return Response(status=status.HTTP_200_OK)
-
-#------------------------------------------------------------------------------------------------------------
-# Agency
-#------------------------------------------------------------------------------------------------------------
-class AgencyListCreateAPIView(APIView):
-    def get(self, request):
-        agencies = Agency.objects.filter(is_deleted=False)
-        serializer = AgencySerializer(agencies, many=True)
-        return Response(serializer.data)
-
-    def post(self, request):
-        serializer = AgencySerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-class AgencyRetrieveUpdateDestroyAPIView(APIView):
-    def get_object(self, pk):
-        try:
-            return Agency.objects.get(pk=pk, is_deleted=False)
-        except Agency.DoesNotExist:
-            return Response({"error": "Agency not found"}, status=status.HTTP_404_NOT_FOUND)
-
-    def get(self, request, pk):
-        agency = self.get_object(pk)
-        serializer = AgencySerializer(agency)
-        return Response(serializer.data)
-
-    def put(self, request, pk):
-        agency = self.get_object(pk)
-        serializer = AgencySerializer(agency, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, pk):
-        agency = self.get_object(pk)
-        agency.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-class AgencyRestoreAPIView(APIView):
-    def get_object(self, pk):
-        try:
-            return Agency.objects.get(pk=pk, is_deleted=True)
-        except Agency.DoesNotExist:
-            return Response({"error": "Agency not found"}, status=status.HTTP_404_NOT_FOUND)
-
-    def put(self, request, pk):
-        agency = self.get_object(pk)
-        agency.restore()
-        return Response(status=status.HTTP_200_OK)
 
 #------------------------------------------------------------------------------------------------------------
 # Profile
@@ -266,13 +185,53 @@ class ProfileDetailAPIView(APIView):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-"""
     def delete(self, request, pk):
         profile = self.get_object(pk)
         profile.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-"""
 
-# ya tengo index en posmant, necesito crear los post (envios de info), show (mostrar por id = pk, es un get), update (actualizar datos), delete (borrar), restore (recuperar), de cada una de las apis
-# ademas, hacer el login register, y log out, 
-# hacer validacaion con try y except en el back (api.py)
+#------------------------------------------------------------------------------------------------------------
+# Trip
+#------------------------------------------------------------------------------------------------------------
+# Crear y listar viajes para clientes
+class TripListCreateAPIView(APIView):
+    permission_classes = [IsClient]  # Permite solo a clientes
+
+    def get(self, request):
+        trips = Trip.objects.filter(client=request.user, is_deleted=False)
+        serializer = TripSerializer(trips, many=True)
+        return Response(serializer.data)
+
+    def post(self, request):
+        serializer = TripSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            serializer.save(client=request.user)  # Asegúrate de que el cliente sea el usuario autenticado
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+# Detalles del viaje, aceptación y actualización por parte del taxista
+class TripRetrieveUpdateAPIView(APIView):
+    permission_classes = [IsDriver]  # Permite solo a taxistas
+
+    def get_object(self, pk):
+        try:
+            trip = Trip.objects.get(pk=pk, is_deleted=False)
+            if trip.driver is None or trip.driver == self.request.user:
+                return trip
+            else:
+                raise Http404("This trip has already been accepted by another driver.")
+        except Trip.DoesNotExist:
+            raise Http404("Trip not found")
+
+    def get(self, request, pk):
+        trip = self.get_object(pk)
+        serializer = TripSerializer(trip)
+        return Response(serializer.data)
+
+    def put(self, request, pk):
+        trip = self.get_object(pk)
+        serializer = TripSerializer(trip, data=request.data, partial=True, context={'request': request})
+        if serializer.is_valid():
+            serializer.save(driver=request.user)  # Asegúrate de asignar el taxista al viaje
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

@@ -60,8 +60,16 @@ class TaxiUserSerializer(serializers.ModelSerializer):
 class TripSerializer(serializers.ModelSerializer):
     class Meta:
         model = Trip
-        fields = ('id', 'client', 'driver', 'start_time', 'end_time', 'start_location', 'end_location', 'is_deleted')
-        read_only_fields = ('id',)
+        fields = ['id', 'client', 'driver', 'start_time', 'end_time', 'start_location', 'end_location', 'is_deleted']
+        extra_kwargs = {
+            'client': {'read_only': True},
+            'driver': {'read_only': True}
+        }
+
+    def create(self, validated_data):
+        # Asegura que el cliente se establezca basado en el usuario autenticado
+        validated_data['client'] = self.context['request'].user
+        return super().create(validated_data)
 
 
 
