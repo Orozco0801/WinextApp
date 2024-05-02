@@ -1,5 +1,4 @@
-Para una aplicación de servicio de taxis como la que describes, similar a Uber, necesitarás un conjunto de tablas (modelos en Django) que te permitan manejar eficientemente las funcionalidades principales como la gestión de usuarios, viajes, vehículos, y la logística asociada a estos. A continuación, detallo las tablas clave que podrías necesitar, considerando que los administradores gestionarán la plataforma únicamente desde la interfaz web y no desde la aplicación móvil.
-Tablas Esenciales para tu API
+Tablas Esenciales para API
 
     Usuarios (User)
         username: Para el nombre de usuario único.
@@ -107,3 +106,51 @@ my_project/
     ├── __init__.py
     ├── models.py
     └── managers.py
+
+
+
+
+
+json para pruebas:
+ {
+  "Role": {
+    "name": "Admin",
+    "description": "Administrador del sistema"
+  },
+  "User": {
+    "username": "usuario1",
+    "password": "contraseña_segura",
+    "email": "usuario1@example.com",
+    "role": 1
+  },
+  "Vehicle": {
+    "make": "Toyota",
+    "model": "Corolla",
+    "plate_number": "ABC-123"
+  },
+  "Agency": {
+    "name": "Agencia1",
+    "address": "123 Calle Principal",
+    "phone": "+58 212-555-5555",
+    "email": "agencia1@example.com"
+  },
+  "Profile": {
+    "user": 1,
+    "name": "Nombre",
+    "last_name": "Apellido",
+    "phone_number": "+58 412-555-5555"
+  },
+  "TaxiUser": {
+    "id_vehicle": 1,
+    "document": "V-12345678",
+    "id_agency": 1
+  },
+  "Trip": {
+    "client": 1,
+    "driver": 2,
+    "start_time": "2024-05-01T17:30:00Z",
+    "end_time": "2024-05-01T18:00:00Z",
+    "start_location": "Punto de inicio",
+    "end_location": "Punto de destino"
+  }
+}

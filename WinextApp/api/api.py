@@ -152,6 +152,7 @@ class RoleRetrieveUpdateDestroyAPIView(APIView):
     def delete(self, request, pk):
         try:
             role = self.get_object(pk)
+            role.deleted_at = timezone.now()
             role.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         except Exception as e:
@@ -167,6 +168,7 @@ class RoleRestoreAPIView(APIView):
     def put(self, request, pk):
         try:
             role = self.get_object(pk)
+            role.deleted_at = None
             role.restore()
             return Response(status=status.HTTP_200_OK)
         except Exception as e:
